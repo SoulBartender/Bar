@@ -1,0 +1,210 @@
+class Program
+    {
+        /// <summary>
+        /// Метод который содержит в себе всю логику вычисления делимости чисел и их распределения по группам.
+        /// </summary>
+        /// <param name="N"></param>
+        /// <returns></returns>
+        public static List<List<int>> Divider (int N)
+        {
+            List<List<int>> groups = new List<List<int>>();
+            int num = 1;    // Непосредственно число, которое мы проверяем на делимость.
+            int row = 0;    // Индекс группы.
+            int temp = 0;   // Временная переменная, принимает в себя значение наличия совпадений делимости числа N в группе row.
+
+            while (num <= N)
+            {
+                if (groups.Count < row + 1)
+                {
+                    groups.Add(new List<int>());
+                }// Если необходимо создать новую группу, создаём.
+
+                if (groups[row].Count == 0)
+                {
+                    groups[row].Add(num);
+                    row = 0;
+                    temp = 0;
+                    num++;
+                }// Если группа пустая то добавляем в неё число, минуя проверку делимости.
+
+                else
+                {
+                    for (int i = 0; i < groups[row].Count; i++)
+                    {
+                        if (num % groups[row][i] == 0)
+                        {
+                            temp++;
+                            break;  // После того, как есть совпадение, нет смысла проверять все оставшиеся числа в группе и загружать программу.
+                        }// Если число делиться без остатка (есть совпадение), то временная переменная увеличивается на еденицу.
+
+                    }// Проверяем все числа в группе на делимость (ищем совпадения).
+
+                    if (temp == 0)
+                    {
+                        groups[row].Add(num);
+                        row = 0;
+                        temp = 0;
+                        num++;
+                    }// Если количество совпадений ноль, знчит этагруппа нам подходит, и записываем число в неё.
+
+                    else
+                    {
+                        row++;
+                        temp = 0;
+                    }// Иначе переходим к следующей группе.
+                }// Т.к. группа не пустая, значит нужно проверить все её числа на делимость (совпадения).
+            }
+
+            return groups;
+        }
+
+        /// <summary>
+        /// Метод печатает только количество групп, игнарируя их содержимое.
+        /// </summary>
+        public static void EasyPrint (List<List<int>>groups)
+        {
+            int M = groups.Count;   // Переменная принимает значение колличества групп в Листе.
+            WriteLine($"\n Найдено групп: {M}");
+        }
+
+        /// <summary>
+        /// Метод печатает все группы, заполняя их.
+        /// </summary>
+        /// <param name="groups"></param>
+        public static void FullPrint (List<List<int>>groups)
+        {
+            for (int i = 0; i < groups.Count; i++)
+            {
+                Write($"Группа {i + 1}: ");
+
+                for (int j = 0; j < groups[i].Count; j++)
+                {
+                    Write(groups[i][j] + " ");
+                }
+
+                WriteLine();
+            }// Печать Листа в консоль.
+            using (StreamWriter sw = new StreamWriter("Result.txt"))    // Создаем поток.
+            {
+                for (int i = 0; i < groups.Count; i++)  // Перебор групп.
+                {
+                    sw.Write($"Группа {i + 1}:\t");
+
+                    for (int j = 0; j < groups[i].Count; j++)
+                    {
+                        sw.Write(groups[i][j] + "\t");
+                    }// Печать содержимого группы.
+                    sw.WriteLine();
+                }// Записываем в файл значение Листа.
+            }// Запись в файл.
+        }
+
+        static void Main(string[] args) 
+        {
+            string number;  // Временная переменная, принимает значение из Файла.
+            int N;          // Форматированное значение числа из Файла (число из условия задачи).
+            string path;    // Путь к Файлу, если он не из корневой дериктории.
+
+            WriteLine(" Укажите путь к файлу, или нажмите Enter, чтобы использовать файл по умолчанию.");
+
+            do
+            {
+                path = ReadLine();
+
+                if (path == string.Empty)
+                {
+                    number = File.ReadAllText("Number.txt");
+                    N = int.Parse(number);
+                    if (N < 1_000_000_001)
+                        break;
+                }// Если путь не указан, то используется стандартный файл и корневой директории.
+
+                else
+                {
+                    if (!File.Exists(path))
+                    {
+                        while (!File.Exists(path))
+                        {
+                            WriteLine($" Файл по пути {path} не существует." +
+                                $"\n Повторите ввод.");
+                            path = ReadLine();
+                        }
+                    }// Если вдруг файл такой файл не найден.
+                    number = File.ReadAllText(path);
+                }// Указать путь к файлу вручную.
+                N = int.Parse(number);
+
+                if (N > 1_000_000_000)
+                {
+                    WriteLine(" Число слишком большое. Оно не должно превышать 1 000 000 000." +
+                    "\n Проверте все и укажите путь к файлу снова.");
+                }// Если число слишком большое.
+            }
+            while (N > 1_000_000_000 || !File.Exists(path));// Ввод файла, его проверка, пути к нему и его числа.
+            
+            Clear();
+
+            Write($" Ваше число: {N}" +
+                $"\n Вы желаете:" +
+                $"\n 1. Посчитать и показать только количество групп (при большом значении займет заметно меньше времени)." +
+                $"\n 2. Посчитать и заполнить группы, и записать результат в файл." +
+                $"\n\n Выберите неоходимый пункт: ");
+
+            int choose = int.Parse(ReadLine()); // Переменная для проверки выбора дальнейших действий.
+
+            DateTime date = new DateTime();     // Создаем новый экземпляр, для проверки скорости вычислений.
+
+            while (choose != 1 && choose != 2)
+            {
+                WriteLine(" Такого пункта нет. Повторите, пожалуйста!" +
+                    "\n Выберите необходимый пункт, 1 или 2.");
+                choose = int.Parse(ReadLine());
+            }// Проверка на правильный ввод выбора печати.
+            
+            switch (choose)
+            {
+                case 1: // Выбор 1. Просто печать количества групп.
+                    date = DateTime.Now;    // Создание временной переменной.
+
+                    EasyPrint(Divider(N));  // Вызов метода.
+
+                    TimeSpan timeSpan1 = DateTime.Now.Subtract(date);   // Создание временного интервала.
+                    WriteLine($"\n Вычеслено за {timeSpan1.Seconds} секунд {timeSpan1.Milliseconds} миллисекунд");
+                    break;
+
+                case 2:     // Выбор 2. Полная печать с записью в Файл и возможностью архивации.
+                    date = DateTime.Now;    // Создание временной переменной.
+                    FullPrint(Divider(N));  // Вызов метода.
+                    TimeSpan timeSpan2 = DateTime.Now.Subtract(date);   // Создание временного интервала.
+                    WriteLine($"\n Вычеслено за {timeSpan2.Seconds} секунд {timeSpan2.Milliseconds} миллисекунд");
+
+                    WriteLine(" Хотите ли заархивировать файл? \n" +
+                        "\n 1. Да, хочу!" +
+                        "\n 2. Нет, закончить работу!");
+                    choose = int.Parse(ReadLine()); // Выбор для архивации.
+                    if (choose == 1)
+                    {
+                        string source = "Result.txt";         // Берем этот файл.
+                        string compressed = "Result.zip";     // И архивируем в этот.
+                        using (FileStream ss = new FileStream(source, FileMode.OpenOrCreate))
+                        {
+                            using (FileStream ts = File.Create(compressed))
+                            {
+                                using (GZipStream cs = new GZipStream(ts, CompressionMode.Compress))
+                                {
+                                    ss.CopyTo(cs);
+                                    Console.WriteLine("Сжатие файла {0} завершено. Было: {1}  стало: {2}.",
+                                                      source,
+                                                      ss.Length,
+                                                      ts.Length);
+                                }// Создаем поток компрессии.
+                            }// Создаем поток для файла компрессии.
+                        }// Создаем поток для открытия.
+                    }// Если решили архивировать.
+                    else
+                        WriteLine(" Досвидания!");
+                    break;
+            }// Выполнение в зависимости от выбора.
+            ReadKey();
+        }
+    }
